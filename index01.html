@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wake Café – iFood</title>
+  <meta name="apple-itunes-app" content="app-id=483017239">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    }
+    .logo {
+      width: 72px; height: 72px;
+      background: #ea1d2c;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .logo svg { width: 40px; height: 40px; fill: white; }
+    h1 { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .subtitle { font-size: 15px; color: #666; line-height: 1.5; margin-bottom: 32px; }
+    .btn-primary {
+      display: block; width: 100%; padding: 16px;
+      background: #ea1d2c; color: white;
+      font-size: 16px; font-weight: 600;
+      border: none; border-radius: 12px;
+      cursor: pointer; text-decoration: none;
+      margin-bottom: 12px; transition: opacity 0.15s;
+    }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-secondary {
+      display: block; width: 100%; padding: 14px;
+      background: transparent; color: #ea1d2c;
+      font-size: 14px; font-weight: 500;
+      border: 1.5px solid #ea1d2c; border-radius: 12px;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-secondary:active { background: #fff0f1; }
+    .status { font-size: 13px; color: #999; margin-top: 20px; min-height: 18px; }
+    .loader {
+      width: 36px; height: 36px;
+      border: 3px solid #f0f0f0;
+      border-top-color: #ea1d2c;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-8.07-15.03-8.07-15.03 0h15.03zM1.02 17h15v2h-15z"/></svg>
+    </div>
+
+    <h1>Wake Café</h1>
+
+    <div id="loading-state">
+      <div class="loader"></div>
+      <p class="subtitle">Abrindo no iFood...</p>
+    </div>
+
+    <div id="manual-state" class="hidden">
+      <p class="subtitle">Clique para abrir direto no app do iFood.</p>
+      <a class="btn-primary" id="btn-app" href="#">Abrir no app do iFood</a>
+      <a class="btn-secondary" id="btn-web" href="#">Abrir no navegador</a>
+      <p class="status" id="status"></p>
+    </div>
+  </div>
+
+  <script>
+    var STORE_ID = '894c682f-74d3-44f5-92cb-8d49e563f433';
+    var SLUG = 'wake-cafe-cidade-jardim';
+    var CITY = 'salvador-ba';
+    var WEB_URL = 'https://www.ifood.com.br/delivery/' + CITY + '/' + SLUG + '/' + STORE_ID + '?utm_medium=share';
+    var APP_STORE = 'https://apps.apple.com/br/app/ifood/id483017239';
+    var PLAY_STORE = 'https://play.google.com/store/apps/details?id=br.com.brainweb.ifood';
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iphone|ipad|ipod/i.test(ua);
+    var isAndroid = /android/i.test(ua);
+    var isMobile = isIOS || isAndroid;
+
+    function showManual(msg) {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('manual-state').classList.remove('hidden');
+      if (msg) document.getElementById('status').textContent = msg;
+    }
+
+    function openWeb() {
+      window.location.href = WEB_URL;
+    }
+
+    function tryAndroid() {
+      // Intent URL: abre o app direto; se não instalado vai para Play Store
+      var intent = 'intent://restaurant/' + STORE_ID +
+        '#Intent' +
+        ';scheme=ifood' +
+        ';package=br.com.brainweb.ifood' +
+        ';S.browser_fallback_url=' + encodeURIComponent(PLAY_STORE) +
+        ';end';
+      window.location.href = intent;
+    }
+
+    function tryIOS() {
+      var deepLink = 'ifood://restaurant/' + STORE_ID;
+      var start = Date.now();
+
+      // Tenta abrir o app
+      var iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+
+      // Fallback: se o app não abriu em 2s, mostra botões manuais
+      setTimeout(function() {
+        var elapsed = Date.now() - start;
+        if (elapsed < 3000 && !document.hidden) {
+          showManual('App não encontrado. Instale o iFood ou abra pelo navegador.');
+          document.getElementById('btn-web').href = APP_STORE;
+          document.getElementById('btn-web').textContent = 'Baixar o iFood na App Store';
+        }
+      }, 2000);
+    }
+
+    function tryDesktop() {
+      showManual('');
+      document.getElementById('btn-web').href = WEB_URL;
+    }
+
+    // Configura botão principal
+    document.getElementById('btn-app').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (isAndroid) tryAndroid();
+      else if (isIOS) {
+        window.location.href = 'ifood://restaurant/' + STORE_ID;
+      } else {
+        openWeb();
+      }
+    });
+
+    document.getElementById('btn-web').addEventListener('click', function(e) {
+      if (!this.href || this.href === '#') {
+        e.preventDefault();
+        openWeb();
+      }
+    });
+
+    // Auto-redirect ao carregar
+    if (isAndroid) {
+      // Android: Intent URL funciona direto, sem precisar de interação
+      tryAndroid();
+      // Mostra botões após 2s caso o redirect não tenha funcionado
+      setTimeout(function() {
+        showManual('Se o app não abriu, tente manualmente:');
+        document.getElementById('btn-web').href = WEB_URL;
+      }, 2000);
+    } else if (isIOS) {
+      tryIOS();
+    } else {
+      // Desktop: mostra botões direto
+      tryDesktop();
+    }
+  </script>
+</body>
+</html>
