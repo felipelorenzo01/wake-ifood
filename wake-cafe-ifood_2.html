@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wake — iFood</title>
+  <meta name="apple-itunes-app" content="app-id=483017239">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5ede6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .logo-wrap {
+      margin-bottom: 12px;
+    }
+
+    .logo-wrap img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: white;
+      padding: 12px;
+      display: block;
+    }
+
+    .name {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2a1f1c;
+      text-align: center;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: #9c7b6e;
+      text-align: center;
+      margin-bottom: 36px;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      padding: 17px 24px;
+      background: #2a1f1c;
+      color: #f5ede6;
+      font-size: 15px;
+      font-weight: 500;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:active {
+      opacity: 0.8;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      padding: 16px 24px;
+      background: transparent;
+      color: #2a1f1c;
+      font-size: 15px;
+      font-weight: 400;
+      border: 1.5px solid #c9b5ac;
+      border-radius: 100px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: border-color 0.15s;
+    }
+
+    .btn-secondary:active {
+      border-color: #2a1f1c;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #b09080;
+      margin-top: 16px;
+      text-align: center;
+      min-height: 16px;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    .loader {
+      width: 28px;
+      height: 28px;
+      border: 2px solid #ddd0c8;
+      border-top-color: #2a1f1c;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none; }
+
+    .buttons {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .footer {
+      margin-top: 48px;
+      font-size: 11px;
+      color: #c4a898;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo-wrap">
+    <img src="https://cardapiowake.com.br/assets/logo.png" alt="Wake">
+  </div>
+
+  <p class="name">waketododia</p>
+  <p class="tagline">comida de verdade, para todo dia.</p>
+
+  <div class="buttons">
+    <div id="loading-state">
+      <div class="loader"></div>
+      <p class="status">Abrindo no iFood...</p>
+    </div>
+
+    <div id="manual-state" class="hidden" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+      <a class="btn-primary" id="btn-app" href="#">Peça pelo iFood</a>
+      <a class="btn-secondary" id="btn-web" href="#">Abrir no navegador</a>
+      <p class="status" id="status"></p>
+    </div>
+  </div>
+
+  <p class="footer">Salvador, BA · @waketododia</p>
+
+  <script>
+    var STORE_ID = '894c682f-74d3-44f5-92cb-8d49e563f433';
+    var SLUG = 'wake-cafe-cidade-jardim';
+    var CITY = 'salvador-ba';
+    var WEB_URL = 'https://www.ifood.com.br/delivery/' + CITY + '/' + SLUG + '/' + STORE_ID + '?utm_medium=share';
+    var APP_STORE = 'https://apps.apple.com/br/app/ifood/id483017239';
+    var PLAY_STORE = 'https://play.google.com/store/apps/details?id=br.com.brainweb.ifood';
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iphone|ipad|ipod/i.test(ua);
+    var isAndroid = /android/i.test(ua);
+
+    function showManual(msg) {
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('manual-state').classList.remove('hidden');
+      if (msg) document.getElementById('status').textContent = msg;
+    }
+
+    function tryAndroid() {
+      var intent = 'intent://restaurant/' + STORE_ID +
+        '#Intent;scheme=ifood;package=br.com.brainweb.ifood' +
+        ';S.browser_fallback_url=' + encodeURIComponent(PLAY_STORE) + ';end';
+      window.location.href = intent;
+    }
+
+    function tryIOS() {
+      var iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'ifood://restaurant/' + STORE_ID;
+      document.body.appendChild(iframe);
+      setTimeout(function() {
+        if (!document.hidden) {
+          showManual('App não encontrado. Baixe o iFood ou abra pelo navegador.');
+          document.getElementById('btn-web').href = APP_STORE;
+          document.getElementById('btn-web').textContent = 'Baixar o iFood';
+        }
+      }, 2000);
+    }
+
+    document.getElementById('btn-app').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (isAndroid) tryAndroid();
+      else if (isIOS) window.location.href = 'ifood://restaurant/' + STORE_ID;
+      else window.location.href = WEB_URL;
+    });
+
+    document.getElementById('btn-web').addEventListener('click', function(e) {
+      if (!this.href || this.href === '#') {
+        e.preventDefault();
+        window.location.href = WEB_URL;
+      }
+    });
+
+    if (isAndroid) {
+      tryAndroid();
+      setTimeout(function() {
+        showManual('Se o app não abriu, tente manualmente:');
+        document.getElementById('btn-web').href = WEB_URL;
+      }, 2000);
+    } else if (isIOS) {
+      tryIOS();
+    } else {
+      showManual('');
+      document.getElementById('btn-web').href = WEB_URL;
+    }
+  </script>
+</body>
+</html>
